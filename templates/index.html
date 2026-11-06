@@ -1,0 +1,128 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="stylesheet" href="/static/style.css">
+<link rel="stylesheet" href="/static/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SecureVault | Secure Records</title>
+
+
+</head>
+
+<body>
+<div class="container">
+
+<section class="brand">
+<div class="logo">
+<div class="logo-icon">🔐</div>
+<span>SecureVault</span>
+</div>
+
+<div>
+<h1>Your data.<br><span>Your security.</span></h1>
+<p>A secure and private space to manage your records.<br>
+Built with security at every layer.</p>
+
+<div class="features">
+<div class="feature"><span class="check">✓</span> Secure authentication</div>
+<div class="feature"><span class="check">✓</span> Protected personal records</div>
+<div class="feature"><span class="check">✓</span> Role-based access control</div>
+<div class="feature"><span class="check">✓</span> Security audit monitoring</div>
+</div>
+</div>
+
+<div class="brand-footer">SECURE RECORD MANAGEMENT PLATFORM</div>
+</section>
+
+<section class="form-panel">
+<h2 id="heading">Welcome back</h2>
+<p class="subtitle" id="subtitle">Sign in to access your secure vault.</p>
+
+<div class="tabs">
+<button id="loginTab" class="active" onclick="switchMode('login')">Sign In</button>
+<button id="registerTab" onclick="switchMode('register')">Create Account</button>
+</div>
+
+<form id="authForm">
+<label for="username">Username</label>
+<input id="username" name="username" placeholder="Enter your username"
+autocomplete="username" minlength="3" maxlength="50" required>
+
+<label for="password">Password</label>
+<input id="password" name="password" type="password"
+placeholder="Enter your password" autocomplete="current-password"
+minlength="8" maxlength="128" required>
+
+<button class="submit" id="submitBtn" type="submit">Sign In Securely →</button>
+<div class="message" id="message" role="status"></div>
+</form>
+
+<div class="note">Protected by SecureVault authentication</div>
+</section>
+
+</div>
+
+<script>
+let mode="login";
+
+function switchMode(next){
+mode=next;
+document.getElementById("loginTab").classList.toggle("active",mode==="login");
+document.getElementById("registerTab").classList.toggle("active",mode==="register");
+document.getElementById("heading").textContent=mode==="login"?"Welcome back":"Create your account";
+document.getElementById("subtitle").textContent=mode==="login"?"Sign in to access your secure vault.":"Register to create your personal secure vault.";
+document.getElementById("submitBtn").textContent=mode==="login"?"Sign In Securely →":"Create Secure Account →";
+document.getElementById("password").autocomplete=mode==="login"?"current-password":"new-password";
+document.getElementById("message").textContent="";
+}
+
+document.getElementById("authForm").addEventListener("submit",async e=>{
+e.preventDefault();
+const message=document.getElementById("message");
+const button=document.getElementById("submitBtn");
+message.style.color="#ff8794";
+message.textContent="";
+button.disabled=true;
+button.textContent="Please wait...";
+
+const payload={
+username:document.getElementById("username").value.trim(),
+password:document.getElementById("password").value
+};
+
+try{
+const response=await fetch(mode==="login"?"/login":"/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(payload)
+});
+const data=await response.json();
+
+if(!response.ok){
+message.textContent=data.error||"Request failed. Please try again.";
+}else if(mode==="register"){
+message.style.color="#20d6a0";
+message.textContent="Account created successfully! You can now sign in.";
+document.getElementById("password").value="";
+switchMode("login");
+message.style.color="#20d6a0";
+message.textContent="Account created successfully! Please sign in.";
+}else{
+sessionStorage.setItem("securevault_token",data.session_token);
+sessionStorage.setItem("securevault_username",payload.username);
+window.location.href="/dashboard";
+}
+}catch(error){
+message.textContent="Cannot connect to SecureVault server. Please try again.";
+}finally{
+button.disabled=false;
+button.textContent=mode==="login"?"Sign In Securely →":"Create Secure Account →";
+}
+});
+</script>
+</body>
+</html>
+
+
+
